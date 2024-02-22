@@ -76,7 +76,7 @@ class _ContenidoState extends State<Contenido> {
           SizedBox(
             height: 5,
           ),
-          const Privacidad(),
+          Privacidad(),
         ],
       ),
     );
@@ -271,7 +271,7 @@ class Botones extends StatelessWidget {
           ),
         ),
       ],
-      
+
     );
   }
 }
