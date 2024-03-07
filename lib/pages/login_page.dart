@@ -1,5 +1,47 @@
+import 'package:counter_test/pages/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:counter_test/pages/forgot_password_page.dart';
+
+final TextEditingController _emailController = TextEditingController();
+final TextEditingController _passwordController = TextEditingController();
+
+Future<void> registerWithEmailAndPassword(String email, String password) async {
+  try {
+    final credential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  } on FirebaseAuthException catch (e) {
+    if (e.code == 'weak-password') {
+      //print('The password provided is too weak.');
+    } else if (e.code == 'email-already-in-use') {
+      //print('The account already exists for that email.');
+    }
+  } catch (e) {
+    //print(e);
+  }
+}
+
+Future<void> signInWithEmailAndPassword(
+    String email, String password, BuildContext context) async {
+  try {
+    final credential = await FirebaseAuth.instance
+        .signInWithEmailAndPassword(email: email, password: password);
+    // ignore: use_build_context_synchronously
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomePage()),
+    );
+  } on FirebaseAuthException catch (e) {
+    if (e.code == 'user-not-found') {
+      // print('No user found for that email.');
+    } else if (e.code == 'wrong-password') {
+      // print('Wrong password provided for that user.');
+    }
+  }
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,7 +71,7 @@ class Fondo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          gradient: LinearGradient(
+        gradient: LinearGradient(
         colors: [Colors.blue.shade300, Colors.blue],
         begin: Alignment.centerRight,
         end: Alignment.centerLeft,
@@ -92,7 +134,7 @@ class Datos extends StatefulWidget {
 }
 
 class _DatosState extends State<Datos> {
-  bool showPassword = true;
+  bool showPass = true;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +159,7 @@ class _DatosState extends State<Datos> {
             height: 5,
           ),
           TextFormField(
+            controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
@@ -138,7 +181,8 @@ class _DatosState extends State<Datos> {
             height: 5,
           ),
           TextFormField(
-            obscureText: showPassword,
+            controller: _passwordController,
+            obscureText: showPass,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
               hintText: 'Contraseña',
@@ -146,9 +190,7 @@ class _DatosState extends State<Datos> {
                 icon: const Icon(Icons.remove_red_eye_outlined),
                 onPressed: () => {
                   setState(() {
-                    showPassword == true
-                        ? showPassword = true
-                        : showPassword = false;
+                    showPass = !showPass;
                   }),
                 },
               ),
@@ -219,7 +261,10 @@ class Botones extends StatelessWidget {
           width: double.infinity,
           height: 50,
           child: ElevatedButton(
-            onPressed: () => {},
+            onPressed: () {
+              signInWithEmailAndPassword(
+                  _emailController.text, _passwordController.text, context);
+            },
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(
                 const Color(0xff142047),
@@ -247,7 +292,10 @@ class Botones extends StatelessWidget {
           width: double.infinity,
           height: 50,
           child: OutlinedButton(
-            onPressed: () => {},
+            onPressed: () {
+              registerWithEmailAndPassword(
+                  _emailController.text, _passwordController.text);
+            },
             child: const Text(
               'Google',
               style: TextStyle(
